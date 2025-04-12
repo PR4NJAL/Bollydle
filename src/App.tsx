@@ -53,12 +53,15 @@ function App() {
       // Parse the file name to get title and artist
       // Assuming format: "SongName - ArtistName.mp3"
       const [title, artist] = fileName.split(' - ');
+
+      // Create the correct URL using the import
+      const module = audioFiles[path] as { default: string };
       
       return {
         id: index,
         title: title || 'Unknown Title',
         artist: artist || 'Unknown Artist',
-        file: path.replace('/assets', '')
+        file: module.default,
       };
     });
     
