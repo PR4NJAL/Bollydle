@@ -42,7 +42,7 @@ function App() {
 
   useEffect(() => {
     // Use Vite's import.meta.glob to get all mp3 files
-    const audioFiles = import.meta.glob('/src/assets/playlist/*.mp3', { eager: true });
+    const audioFiles = import.meta.glob('./assets/playlist/*.mp3', { eager: false });//Abhi ke liye false
     console.log("Audio files loaded:", audioFiles);
 
     // Convert file paths to track objects
@@ -68,11 +68,12 @@ function App() {
     setTracks(trackList);
     
     // Select a random track
-    if (trackList.length > 0) {
-      const randomIndex = Math.floor(Math.random() * trackList.length);
-      setCurrentTrack(trackList[randomIndex]);
-    }
-    
+    //if (trackList.length > 0) {
+      //const randomIndex = Math.floor(Math.random() * trackList.length);
+      //setCurrentTrack(trackList[randomIndex]);
+    //}
+    setCurrentTrack(trackList[0]); //Kyunki abhi sirf Talwinder ki playlist h, baad me uncomment
+
     setLoading(false);
 
     // Create audio element
