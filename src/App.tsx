@@ -42,7 +42,7 @@ function App() {
 
   useEffect(() => {
     // Use Vite's import.meta.glob to get all mp3 files
-    const audioFiles = import.meta.glob('./assets/playlist/*.mp3', { eager: false });//Abhi ke liye false
+    const audioFiles = import.meta.glob('./assets/playlist/*.mp3', { eager: true });
     console.log("Audio files loaded:", audioFiles);
 
     // Convert file paths to track objects
