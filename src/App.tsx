@@ -12,7 +12,7 @@ import {
   InputRightElement,
   Center,
   Icon,
-  useColorModeValue,
+  Progress,
   useToast
 } from '@chakra-ui/react';
 import { FaPlay, FaPause, FaQuestion, FaChartBar, FaInfoCircle, FaSearch, FaTimes, FaChevronDown } from 'react-icons/fa';
@@ -20,7 +20,6 @@ import { FaPlay, FaPause, FaQuestion, FaChartBar, FaInfoCircle, FaSearch, FaTime
 interface Track {
   id: number;
   title: string;
-  artist: string;
   file: string;
 }
 
@@ -35,6 +34,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const maxAttempts = 6;
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const attemptsRef = useRef<string[]>([]);
   const toast = useToast();
 
   // Define how much audio to reveal based on number of attempts
@@ -52,15 +52,14 @@ function App() {
       
       // Parse the file name to get title and artist
       // Assuming format: "SongName - ArtistName.mp3"
-      const [title, artist] = fileName.split(' - ');
+      // const title = fileName.split(' - ');
 
       // Create the correct URL using the import
       const module = audioFiles[path] as { default: string };
       
       return {
         id: index,
-        title: title || 'Unknown Title',
-        artist: artist || 'Unknown Artist',
+        title: fileName || 'Unknown Title',
         file: module.default,
       };
     });
@@ -93,22 +92,55 @@ function App() {
   // When current track changes, set up the audio
   useEffect(() => {
     if (currentTrack && audioRef.current) {
+      console.log("Loading audio track:", currentTrack.title, "File:", currentTrack.file);
+      
+      // Set the source and load
       audioRef.current.src = currentTrack.file;
       audioRef.current.load();
+      
+      // Set audio volume to a reasonable level
+      audioRef.current.volume = 0.7;
+      
+      // Add error handler
+      const handleError = () => {
+        console.error("Audio error:", audioRef.current?.error);
+        toast({
+          title: "Audio Error",
+          description: `Could not load audio: ${audioRef.current?.error?.message || "Unknown error"}`,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        setLoading(false);
+      };
+      
+      audioRef.current.addEventListener('error', handleError);
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener('error', handleError);
+        }
+      };
     }
   }, [currentTrack]);
 
+  useEffect(() => {
+    attemptsRef.current = attempts;
+  }, [attempts]);
+
   const updateTime = () => {
     if (audioRef.current) {
-      const current = Math.floor(audioRef.current.currentTime);
-      const seconds = current % 60;
+      const current = audioRef.current.currentTime;
+      
+      const seconds = Math.floor(current % 60);
       const minutesStr = Math.floor(current / 60).toString();
       const secondsStr = seconds < 10 ? `0${seconds}` : seconds.toString();
       
       setCurrentTime(`${minutesStr}:${secondsStr}`);
       
       // If we reach the maximum allowed time for current attempt count, pause
-      const maxTimeForAttempts = revealMap[attempts.length];
+      const maxTimeForAttempts = revealMap[attemptsRef.current.length];
+      console.log(attemptsRef.current)
       if (current >= maxTimeForAttempts) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -116,37 +148,55 @@ function App() {
     }
   };
 
+  //togglePlay function
   const togglePlay = () => {
-    if (!currentTrack) return;
-    console.log("Toggling play for track:", currentTrack.title);
+    if (!currentTrack) {
+      console.log("No current track to play");
+      return;
+    }
+
+    console.log("Toggling play for track:", currentTrack.title, "Current playing state:", isPlaying);
     
     if (isPlaying) {
-      audioRef.current?.pause();
+      // If currently playing, pause the audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
     } else {
+      // If currently paused, play the audio
       // Limit playback time based on number of attempts
       const maxTimeForAttempts = revealMap[attempts.length];
       
       if (audioRef.current) {
         // If we've gone past the allowed time, restart
-        if (audioRef.current.currentTime > maxTimeForAttempts) {
+        if (audioRef.current.currentTime >= maxTimeForAttempts) {
           audioRef.current.currentTime = 0;
         }
         
-        audioRef.current.play()
-          .catch(error => {
-            console.error("Error playing audio:", error);
-            toast({
-              title: "Playback Error",
-              description: "There was an error playing the track",
-              status: "error",
-              duration: 5000,
-              isClosable: true,
+        // Play and handle errors
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log("Audio started playing successfully");
+              setIsPlaying(true);
+            })
+            .catch(error => {
+              console.error("Error playing audio:", error);
+              setIsPlaying(false);
+              toast({
+                title: "Playback Error",
+                description: "There was an error playing the track. Check if audio files are correctly loaded.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              });
             });
-          });
+        }
       }
     }
-    
-    setIsPlaying(!isPlaying);
   };
 
   const handleSubmit = () => {
@@ -207,8 +257,15 @@ function App() {
   }
 
   // Calculate progress percentage based on current time and allowed time
-  const progressPercentage = audioRef.current && attempts.length < revealMap.length ? 
-    (audioRef.current.currentTime / revealMap[attempts.length]) * 100 : 0;
+  const getProgressPercentage = () => {
+    if (!audioRef.current || attempts.length >= revealMap.length) {
+      return 0;
+    }
+    
+    const maxTime = revealMap[attempts.length];
+    const current = audioRef.current.currentTime;
+    return (current / maxTime) * 100;
+  };
 
   return (
     <Box bg="black" color="white" minH="100vh" minW="100vw" p={20}>
@@ -278,19 +335,18 @@ function App() {
       <Box position="fixed" bottom="250px" left={0} right={0} bg="black" p={20}>
         <Flex justify="center" align="center" px={12}>
           <Text mr={4}>{currentTime}</Text>
-          <Box 
-            flex={1} 
-            height="1px" 
-            bg="gray.600"
-            position="relative"
-          >
-            <Box 
-              position="absolute"
-              top={0}
-              left={0}
-              height="1px"
-              width={`${progressPercentage}%`}
-              bg="white"
+          <Box flex={1} mx={2}>
+            <Progress 
+              value={getProgressPercentage()} 
+              size="xs" 
+              colorScheme="whiteAlpha" 
+              bg="gray.600"
+              borderRadius="full"
+              sx={{
+                '& > div': {
+                  transition: 'width 0.25s linear'
+                }
+              }}
             />
           </Box>
           <Text ml={4}>{attempts.length < revealMap.length ? `0:${revealMap[attempts.length].toString().padStart(2, '0')}` : duration}</Text>
@@ -307,39 +363,83 @@ function App() {
             borderWidth={2}
             onClick={togglePlay}
             isLoading={loading}
+            _hover={{ bg: "gray.700" }}
           />
         </Center>
       </Box>
 
       {/* Input and buttons */}
       <Box position="fixed" bottom="15px" left={0} right={0} p={20} bg="black" borderTop="1px solid" borderColor="gray.800">
-        <InputGroup mb={4} bg="#222" borderRadius="md">
-          <InputLeftElement>
-            <Icon as={FaSearch} color="gray.500" />
-          </InputLeftElement>
-          <Input
-            placeholder="Know it? Search for the title"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            _placeholder={{ color: 'gray.500' }}
-            border="none"
-            pr="40px"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSubmit();
-            }}
-          />
-          {guess && (
-            <InputRightElement>
-              <IconButton 
-                aria-label="Clear input" 
-                icon={<FaTimes />} 
-                size="sm" 
-                variant="ghost"
-                onClick={handleClearInput}
-              />
-            </InputRightElement>
+        {/* Search select for guess */}
+        <Box mb={4} position="relative">
+          <InputGroup bg="#222" borderRadius="md">
+            <InputLeftElement>
+              <Icon as={FaSearch} color="gray.500" />
+            </InputLeftElement>
+            <Input
+              placeholder="Know it? Search for the title"
+              value={guess}
+              onChange={(e) => {
+                setGuess(e.target.value);
+              }}
+              _placeholder={{ color: 'gray.500' }}
+              border="none"
+              pr="40px"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSubmit();
+              }}
+              autoComplete="off"
+            />
+            {guess && (
+              <InputRightElement>
+                <IconButton 
+                  aria-label="Clear input" 
+                  icon={<FaTimes />} 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={handleClearInput}
+                />
+              </InputRightElement>
+            )}
+          </InputGroup>
+          
+          {/* Dropdown menu for suggestions */}
+          {guess.trim().length > 0 && (
+            <Box 
+              position="absolute" 
+              top="100%" 
+              left={0} 
+              right={0} 
+              bg="#333" 
+              zIndex={10} 
+              borderRadius="md"
+              overflow="hidden"
+              mt={1}
+              maxH="200px"
+              overflowY="auto"
+              boxShadow="md"
+            >
+              {tracks
+                .filter(track => 
+                  track.title.toLowerCase().includes(guess.toLowerCase())
+                )
+                .slice(0, 5) // Limit to 5 suggestions
+                .map(track => (
+                  <Box 
+                    key={track.id} 
+                    p={3} 
+                    cursor="pointer" 
+                    _hover={{ bg: "#444" }}
+                    onClick={() => {
+                      setGuess(track.title);
+                    }}
+                  >
+                    {track.title}
+                  </Box>
+                ))}
+            </Box>
           )}
-        </InputGroup>
+        </Box>
         <Flex justify="space-between">
           <Button 
             variant="outline" 
