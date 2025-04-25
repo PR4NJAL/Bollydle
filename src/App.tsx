@@ -348,6 +348,7 @@ function App() {
             onClick={handleSkip}
             width="120px"
             isDisabled={attempts.length >= maxAttempts}
+            _hover={{ bg: "gray.700" }}
           >
             SKIP (+1s)
           </Button>
