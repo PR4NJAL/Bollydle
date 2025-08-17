@@ -75,95 +75,48 @@ function App() {
   // Define how much audio to reveal based on number of attempts
   const revealMap = [1, 2, 4, 7, 11, 16]; // seconds to reveal at each attempt
 
-  // useEffect(() => {
-  //   // Use Vite's import.meta.glob to get all mp3 files
-  //   const audioFiles = import.meta.glob('./assets/playlist/*.mp3', { eager: true });
-  //   console.log("Audio files loaded:", audioFiles);
-
-  //   // Convert file paths to track objects
-  //   const trackList: Track[] = Object.keys(audioFiles).map((path, index) => {
-  //     // Extract the filename without extension from the path
-  //     const fileName = path.split('/').pop()?.replace('.mp3', '') || '';
-
-  //     // Parse the file name to get title and artist
-  //     // Assuming format: "SongName - ArtistName.mp3"
-  //     // const title = fileName.split(' - ');
-
-  //     // Create the correct URL using the import
-  //     const module = audioFiles[path] as { default: string };
-
-  //     return {
-  //       id: index,
-  //       title: fileName || 'Unknown Title',
-  //       file: module.default,
-  //     };
-  //   });
-
-  //   setTracks(trackList);
-
-  //   // Select a random track
-  //   //if (trackList.length > 0) {
-  //   //const randomIndex = Math.floor(Math.random() * trackList.length);
-  //   //setCurrentTrack(trackList[randomIndex]);
-  //   //}
-  //   setCurrentTrack(trackList[0]); //Kyunki abhi sirf Talwinder ki playlist h, baad me uncomment
-
-  //   setLoading(false);
-
-  //   // Create audio element
-  //   audioRef.current = new Audio();
-  //   audioRef.current.addEventListener('timeupdate', updateTime);
-  //   audioRef.current.addEventListener('ended', () => setIsPlaying(false));
-
-  //   return () => {
-  //     if (audioRef.current) {
-  //       audioRef.current.removeEventListener('timeupdate', updateTime);
-  //       audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
-  //       audioRef.current.pause();
-  //     }
-  //   };
-  // }, []);
-
   useEffect(() => {
-    async function loadSpotify() {
-      try {
-        setLoading(true);
-        const res = await fetch(`http://localhost:3001/playlist`);
-        const json = await res.json();
-        const trackList: Track[] = (json.tracks || []) as Track[];
-        setTracks(trackList);
-        if (trackList.length) {
-          setCurrentTrack(trackList[0]); // or pick random
-        } else {
-          toast({
-            title: "No previews in playlist",
-            description: "Pick a playlist where tracks have preview_url.",
-            status: "warning",
-            duration: 4000,
-            isClosable: true,
-          });
-        }
-      } catch (e: any) {
-        console.error(e);
-        toast({
-          title: "Spotify error",
-          description: e?.message || "Failed to load playlist",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
+    // Use Vite's import.meta.glob to get all mp3 files
+    const audioFiles = import.meta.glob("./assets/playlist/*.mp3", {
+      eager: true,
+    });
+    console.log("Audio files loaded:", audioFiles);
 
-    // Remove the import.meta.glob block and call this instead
-    loadSpotify();
+    // Convert file paths to track objects
+    const trackList: Track[] = Object.keys(audioFiles).map((path, index) => {
+      // Extract the filename without extension from the path
+      const fileName = path.split("/").pop()?.replace(".mp3", "") || "";
 
-    // Create audio element, listeners, cleanup (your existing code)...
+      // Parse the file name to get title and artist
+      // Assuming format: "SongName - ArtistName.mp3"
+      // const title = fileName.split(' - ');
+
+      // Create the correct URL using the import
+      const module = audioFiles[path] as { default: string };
+
+      return {
+        id: index,
+        title: fileName || "Unknown Title",
+        file: module.default,
+      };
+    });
+
+    setTracks(trackList);
+
+    // Select a random track
+    //if (trackList.length > 0) {
+    //const randomIndex = Math.floor(Math.random() * trackList.length);
+    //setCurrentTrack(trackList[randomIndex]);
+    //}
+    setCurrentTrack(trackList[0]); //Kyunki abhi sirf Talwinder ki playlist h, baad me uncomment
+
+    setLoading(false);
+
+    // Create audio element
     audioRef.current = new Audio();
     audioRef.current.addEventListener("timeupdate", updateTime);
     audioRef.current.addEventListener("ended", () => setIsPlaying(false));
+
     return () => {
       if (audioRef.current) {
         audioRef.current.removeEventListener("timeupdate", updateTime);
