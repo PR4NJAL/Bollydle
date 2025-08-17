@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -21,18 +21,9 @@ import {
   ModalHeader,
   ModalFooter,
   ModalBody,
-  ModalCloseButton,
-} from "@chakra-ui/react";
-import {
-  FaPlay,
-  FaPause,
-  FaQuestion,
-  FaChartBar,
-  FaInfoCircle,
-  FaSearch,
-  FaTimes,
-  FaChevronDown,
-} from "react-icons/fa";
+  ModalCloseButton
+} from '@chakra-ui/react';
+import { FaPlay, FaPause, FaQuestion, FaChartBar, FaInfoCircle, FaSearch, FaTimes, FaChevronDown } from 'react-icons/fa';
 
 interface Track {
   id: number;
@@ -41,31 +32,19 @@ interface Track {
 }
 
 function App() {
-  const [guess, setGuess] = useState("");
+  const [guess, setGuess] = useState('');
   const [attempts, setAttempts] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState("0:00");
-  const [duration, setDuration] = useState("0:16"); //setDuration isn't being used
+  const [currentTime, setCurrentTime] = useState('0:00');
+  const [duration, setDuration] = useState('0:16'); //setDuration isn't being used
   const [selected, setSelected] = useState(false);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const {
-    isOpen: isInfoOpen,
-    onOpen: onInfoOpen,
-    onClose: onInfoClose,
-  } = useDisclosure();
-  const {
-    isOpen: isStatsOpen,
-    onOpen: onStatsOpen,
-    onClose: onStatsClose,
-  } = useDisclosure();
-  const {
-    isOpen: isHelpOpen,
-    onOpen: onHelpOpen,
-    onClose: onHelpClose,
-  } = useDisclosure();
+  const { isOpen: isInfoOpen, onOpen: onInfoOpen, onClose: onInfoClose } = useDisclosure()
+  const { isOpen: isStatsOpen, onOpen: onStatsOpen, onClose: onStatsClose } = useDisclosure()
+  const { isOpen: isHelpOpen, onOpen: onHelpOpen, onClose: onHelpClose } = useDisclosure()
 
   const maxAttempts = 6;
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -77,15 +56,13 @@ function App() {
 
   useEffect(() => {
     // Use Vite's import.meta.glob to get all mp3 files
-    const audioFiles = import.meta.glob("./assets/playlist/*.mp3", {
-      eager: true,
-    });
+    const audioFiles = import.meta.glob('./assets/playlist/*.mp3', { eager: true });
     console.log("Audio files loaded:", audioFiles);
 
     // Convert file paths to track objects
     const trackList: Track[] = Object.keys(audioFiles).map((path, index) => {
       // Extract the filename without extension from the path
-      const fileName = path.split("/").pop()?.replace(".mp3", "") || "";
+      const fileName = path.split('/').pop()?.replace('.mp3', '') || '';
 
       // Parse the file name to get title and artist
       // Assuming format: "SongName - ArtistName.mp3"
@@ -96,7 +73,7 @@ function App() {
 
       return {
         id: index,
-        title: fileName || "Unknown Title",
+        title: fileName || 'Unknown Title',
         file: module.default,
       };
     });
@@ -114,15 +91,13 @@ function App() {
 
     // Create audio element
     audioRef.current = new Audio();
-    audioRef.current.addEventListener("timeupdate", updateTime);
-    audioRef.current.addEventListener("ended", () => setIsPlaying(false));
+    audioRef.current.addEventListener('timeupdate', updateTime);
+    audioRef.current.addEventListener('ended', () => setIsPlaying(false));
 
     return () => {
       if (audioRef.current) {
-        audioRef.current.removeEventListener("timeupdate", updateTime);
-        audioRef.current.removeEventListener("ended", () =>
-          setIsPlaying(false)
-        );
+        audioRef.current.removeEventListener('timeupdate', updateTime);
+        audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
         audioRef.current.pause();
       }
     };
@@ -131,12 +106,7 @@ function App() {
   // When current track changes, set up the audio
   useEffect(() => {
     if (currentTrack && audioRef.current) {
-      console.log(
-        "Loading audio track:",
-        currentTrack.title,
-        "File:",
-        currentTrack.file
-      );
+      console.log("Loading audio track:", currentTrack.title, "File:", currentTrack.file);
 
       // Set the source and load
       audioRef.current.src = currentTrack.file;
@@ -150,9 +120,7 @@ function App() {
         console.error("Audio error:", audioRef.current?.error);
         toast({
           title: "Audio Error",
-          description: `Could not load audio: ${
-            audioRef.current?.error?.message || "Unknown error"
-          }`,
+          description: `Could not load audio: ${audioRef.current?.error?.message || "Unknown error"}`,
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -160,11 +128,11 @@ function App() {
         setLoading(false);
       };
 
-      audioRef.current.addEventListener("error", handleError);
+      audioRef.current.addEventListener('error', handleError);
 
       return () => {
         if (audioRef.current) {
-          audioRef.current.removeEventListener("error", handleError);
+          audioRef.current.removeEventListener('error', handleError);
         }
       };
     }
@@ -186,7 +154,7 @@ function App() {
 
       // If we reach the maximum allowed time for current attempt count, pause
       const maxTimeForAttempts = revealMap[attemptsRef.current.length];
-      console.log(attemptsRef.current);
+      console.log(attemptsRef.current)
       if (current >= maxTimeForAttempts) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -201,12 +169,7 @@ function App() {
       return;
     }
 
-    console.log(
-      "Toggling play for track:",
-      currentTrack.title,
-      "Current playing state:",
-      isPlaying
-    );
+    console.log("Toggling play for track:", currentTrack.title, "Current playing state:", isPlaying);
 
     if (isPlaying) {
       // If currently playing, pause the audio
@@ -234,13 +197,12 @@ function App() {
               console.log("Audio started playing successfully");
               setIsPlaying(true);
             })
-            .catch((error) => {
+            .catch(error => {
               console.error("Error playing audio:", error);
               setIsPlaying(false);
               toast({
                 title: "Playback Error",
-                description:
-                  "There was an error playing the track. Check if audio files are correctly loaded.",
+                description: "There was an error playing the track. Check if audio files are correctly loaded.",
                 status: "error",
                 duration: 5000,
                 isClosable: true,
@@ -258,8 +220,8 @@ function App() {
     const isCorrect = guess.toLowerCase() === correctAnswer.toLowerCase();
 
     // Add result to attempts
-    setAttempts((prev) => [...prev, guess]);
-    setGuess("");
+    setAttempts(prev => [...prev, guess]);
+    setGuess('');
 
     if (isCorrect) {
       toast({
@@ -289,7 +251,7 @@ function App() {
   const handleSkip = () => {
     if (attempts.length >= maxAttempts) return;
 
-    setAttempts((prev) => [...prev, "Skipped"]);
+    setAttempts(prev => [...prev, 'Skipped']);
 
     // Increase the playback time allowance
     if (audioRef.current && attempts.length + 1 < revealMap.length) {
@@ -299,13 +261,13 @@ function App() {
   };
 
   const handleClearInput = () => {
-    setGuess("");
+    setGuess('');
   };
 
   // Fill in empty attempts to display all boxes
   const attemptsToShow = [...attempts];
   while (attemptsToShow.length < maxAttempts) {
-    attemptsToShow.push("");
+    attemptsToShow.push('');
   }
 
   // Calculate progress percentage based on current time and allowed time
@@ -322,14 +284,7 @@ function App() {
   return (
     <Box bg="black" color="white" minH="100vh" minW="100vw" p={20}>
       {/* Header */}
-      <Flex
-        justify="space-between"
-        align="center"
-        px={4}
-        py={3}
-        borderBottom="1px solid"
-        borderColor="gray.700"
-      >
+      <Flex justify="space-between" align="center" px={4} py={3} borderBottom="1px solid" borderColor="gray.700">
         <IconButton
           aria-label="Info"
           icon={<FaInfoCircle />}
@@ -347,15 +302,15 @@ function App() {
             <ModalCloseButton />
             <ModalBody>
               <Text>
-                This is placeholder information text that appears in a modal
-                when you click the info button. You can add any content here!
+                This is placeholder information text that appears in a modal when you
+                click the info button. You can add any content here!
               </Text>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="blue" mr={3} onClick={onInfoClose}>
+              <Button colorScheme='blue' mr={3} onClick={onInfoClose}>
                 Close
               </Button>
-              <Button variant="ghost">Secondary Action</Button>
+              <Button variant='ghost'>Secondary Action</Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
@@ -380,15 +335,15 @@ function App() {
               <ModalCloseButton />
               <ModalBody>
                 <Text>
-                  This is placeholder information text that appears in a modal
-                  when you click the info button. You can add any content here!
+                  This is placeholder information text that appears in a modal when you
+                  click the info button. You can add any content here!
                 </Text>
               </ModalBody>
               <ModalFooter>
-                <Button colorScheme="blue" mr={3} onClick={onStatsClose}>
+                <Button colorScheme='blue' mr={3} onClick={onStatsClose}>
                   Close
                 </Button>
-                <Button variant="ghost">Secondary Action</Button>
+                <Button variant='ghost'>Secondary Action</Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
@@ -410,18 +365,19 @@ function App() {
               <ModalCloseButton />
               <ModalBody>
                 <Text>
-                  This is placeholder information text that appears in a modal
-                  when you click the info button. You can add any content here!
+                  This is placeholder information text that appears in a modal when you
+                  click the info button. You can add any content here!
                 </Text>
               </ModalBody>
               <ModalFooter>
-                <Button colorScheme="blue" mr={3} onClick={onHelpClose}>
+                <Button colorScheme='blue' mr={3} onClick={onHelpClose}>
                   Close
                 </Button>
-                <Button variant="ghost">Secondary Action</Button>
+                <Button variant='ghost'>Secondary Action</Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
+
         </Flex>
       </Flex>
 
@@ -467,17 +423,13 @@ function App() {
               bg="gray.600"
               borderRadius="full"
               sx={{
-                "& > div": {
-                  transition: "width 0.25s linear",
-                },
+                '& > div': {
+                  transition: 'width 0.25s linear'
+                }
               }}
             />
           </Box>
-          <Text ml={4}>
-            {attempts.length < revealMap.length
-              ? `0:${revealMap[attempts.length].toString().padStart(2, "0")}`
-              : duration}
-          </Text>
+          <Text ml={4}>{attempts.length < revealMap.length ? `0:${revealMap[attempts.length].toString().padStart(2, '0')}` : duration}</Text>
         </Flex>
         <Center mt={4}>
           <IconButton
@@ -497,16 +449,7 @@ function App() {
       </Box>
 
       {/* Input and buttons */}
-      <Box
-        position="fixed"
-        bottom="15px"
-        left={0}
-        right={0}
-        p={20}
-        bg="black"
-        borderTop="1px solid"
-        borderColor="gray.800"
-      >
+      <Box position="fixed" bottom="15px" left={0} right={0} p={20} bg="black" borderTop="1px solid" borderColor="gray.800">
         {/* Search select for guess */}
         <Box mb={4} position="relative">
           <InputGroup bg="#222" borderRadius="md">
@@ -520,11 +463,11 @@ function App() {
                 setGuess(e.target.value);
                 setSelected(false);
               }}
-              _placeholder={{ color: "gray.500" }}
+              _placeholder={{ color: 'gray.500' }}
               border="none"
               pr="40px"
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleSubmit();
+                if (e.key === 'Enter') handleSubmit();
               }}
               autoComplete="off"
             />
@@ -558,11 +501,11 @@ function App() {
               boxShadow="md"
             >
               {tracks
-                .filter((track) =>
+                .filter(track =>
                   track.title.toLowerCase().includes(guess.toLowerCase())
                 )
                 .slice(0, 5) // Limit to 5 suggestions
-                .map((track) => (
+                .map(track => (
                   <Box
                     key={track.id}
                     p={3}
