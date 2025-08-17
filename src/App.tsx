@@ -8,22 +8,20 @@ import {
   Flex,
   IconButton,
   InputGroup,
-import { useState, useRef, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Heading,
-  Input,
-  Text,
-  Flex,
-  IconButton,
-  InputGroup,
   InputLeftElement,
   InputRightElement,
   Center,
   Icon,
   Progress,
   useToast,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import {
   FaPlay,
@@ -35,17 +33,6 @@ import {
   FaTimes,
   FaChevronDown,
 } from "react-icons/fa";
-  useToast,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton
-} from '@chakra-ui/react';
-import { FaPlay, FaPause, FaQuestion, FaChartBar, FaInfoCircle, FaSearch, FaTimes, FaChevronDown } from 'react-icons/fa';
 
 interface Track {
   id: number;
@@ -58,17 +45,27 @@ function App() {
   const [attempts, setAttempts] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState("0:00");
-  const [duration, setDuration] = useState("0:16");
-  const [currentTime, setCurrentTime] = useState('0:00');
-  const [duration, setDuration] = useState('0:16'); //setDuration isn't being used
+  const [duration, setDuration] = useState("0:16"); //setDuration isn't being used
   const [selected, setSelected] = useState(false);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { isOpen: isInfoOpen, onOpen: onInfoOpen, onClose: onInfoClose } = useDisclosure()
-  const { isOpen: isStatsOpen, onOpen: onStatsOpen, onClose: onStatsClose } = useDisclosure()
-  const { isOpen: isHelpOpen, onOpen: onHelpOpen, onClose: onHelpClose } = useDisclosure()
+  const {
+    isOpen: isInfoOpen,
+    onOpen: onInfoOpen,
+    onClose: onInfoClose,
+  } = useDisclosure();
+  const {
+    isOpen: isStatsOpen,
+    onOpen: onStatsOpen,
+    onClose: onStatsClose,
+  } = useDisclosure();
+  const {
+    isOpen: isHelpOpen,
+    onOpen: onHelpOpen,
+    onClose: onHelpClose,
+  } = useDisclosure();
 
   const maxAttempts = 6;
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -106,8 +103,8 @@ function App() {
 
   //   // Select a random track
   //   //if (trackList.length > 0) {
-  //     //const randomIndex = Math.floor(Math.random() * trackList.length);
-  //     //setCurrentTrack(trackList[randomIndex]);
+  //   //const randomIndex = Math.floor(Math.random() * trackList.length);
+  //   //setCurrentTrack(trackList[randomIndex]);
   //   //}
   //   setCurrentTrack(trackList[0]); //Kyunki abhi sirf Talwinder ki playlist h, baad me uncomment
 
@@ -127,7 +124,6 @@ function App() {
   //   };
   // }, []);
 
-  // ...existing code...
   useEffect(() => {
     async function loadSpotify() {
       try {
@@ -163,39 +159,6 @@ function App() {
 
     // Remove the import.meta.glob block and call this instead
     loadSpotify();
-    // Use Vite's import.meta.glob to get all mp3 files
-    const audioFiles = import.meta.glob('./assets/playlist/*.mp3', { eager: true });
-    console.log("Audio files loaded:", audioFiles);
-
-    // Convert file paths to track objects
-    const trackList: Track[] = Object.keys(audioFiles).map((path, index) => {
-      // Extract the filename without extension from the path
-      const fileName = path.split('/').pop()?.replace('.mp3', '') || '';
-
-      // Parse the file name to get title and artist
-      // Assuming format: "SongName - ArtistName.mp3"
-      // const title = fileName.split(' - ');
-
-      // Create the correct URL using the import
-      const module = audioFiles[path] as { default: string };
-
-      return {
-        id: index,
-        title: fileName || 'Unknown Title',
-        file: module.default,
-      };
-    });
-
-    setTracks(trackList);
-
-    // Select a random track
-    //if (trackList.length > 0) {
-    //const randomIndex = Math.floor(Math.random() * trackList.length);
-    //setCurrentTrack(trackList[randomIndex]);
-    //}
-    setCurrentTrack(trackList[0]); //Kyunki abhi sirf Talwinder ki playlist h, baad me uncomment
-
-    setLoading(false);
 
     // Create audio element, listeners, cleanup (your existing code)...
     audioRef.current = new Audio();
@@ -211,7 +174,6 @@ function App() {
       }
     };
   }, []);
-  // ...existing code...r
 
   // When current track changes, set up the audio
   useEffect(() => {
@@ -223,16 +185,12 @@ function App() {
         currentTrack.file
       );
 
-      console.log("Loading audio track:", currentTrack.title, "File:", currentTrack.file);
-
       // Set the source and load
       audioRef.current.src = currentTrack.file;
       audioRef.current.load();
 
-
       // Set audio volume to a reasonable level
       audioRef.current.volume = 0.7;
-
 
       // Add error handler
       const handleError = () => {
@@ -251,9 +209,6 @@ function App() {
 
       audioRef.current.addEventListener("error", handleError);
 
-
-      audioRef.current.addEventListener('error', handleError);
-
       return () => {
         if (audioRef.current) {
           audioRef.current.removeEventListener("error", handleError);
@@ -270,14 +225,11 @@ function App() {
     if (audioRef.current) {
       const current = audioRef.current.currentTime;
 
-
       const seconds = Math.floor(current % 60);
       const minutesStr = Math.floor(current / 60).toString();
       const secondsStr = seconds < 10 ? `0${seconds}` : seconds.toString();
 
-
       setCurrentTime(`${minutesStr}:${secondsStr}`);
-
 
       // If we reach the maximum allowed time for current attempt count, pause
       const maxTimeForAttempts = revealMap[attemptsRef.current.length];
@@ -303,8 +255,6 @@ function App() {
       isPlaying
     );
 
-    console.log("Toggling play for track:", currentTrack.title, "Current playing state:", isPlaying);
-
     if (isPlaying) {
       // If currently playing, pause the audio
       if (audioRef.current) {
@@ -316,17 +266,14 @@ function App() {
       // Limit playback time based on number of attempts
       const maxTimeForAttempts = revealMap[attempts.length];
 
-
       if (audioRef.current) {
         // If we've gone past the allowed time, restart
         if (audioRef.current.currentTime >= maxTimeForAttempts) {
           audioRef.current.currentTime = 0;
         }
 
-
         // Play and handle errors
         const playPromise = audioRef.current.play();
-
 
         if (playPromise !== undefined) {
           playPromise
@@ -354,17 +301,12 @@ function App() {
   const handleSubmit = () => {
     if (!guess.trim() || attempts.length >= maxAttempts) return;
 
-
     const correctAnswer = currentTrack?.title || "";
     const isCorrect = guess.toLowerCase() === correctAnswer.toLowerCase();
-
 
     // Add result to attempts
     setAttempts((prev) => [...prev, guess]);
     setGuess("");
-
-    setAttempts(prev => [...prev, guess]);
-    setGuess('');
 
     if (isCorrect) {
       toast({
@@ -391,14 +333,10 @@ function App() {
     }
   };
 
-
   const handleSkip = () => {
     if (attempts.length >= maxAttempts) return;
 
     setAttempts((prev) => [...prev, "Skipped"]);
-
-
-    setAttempts(prev => [...prev, 'Skipped']);
 
     // Increase the playback time allowance
     if (audioRef.current && attempts.length + 1 < revealMap.length) {
@@ -423,7 +361,6 @@ function App() {
       return 0;
     }
 
-
     const maxTime = revealMap[attempts.length];
     const current = audioRef.current.currentTime;
     return (current / maxTime) * 100;
@@ -445,12 +382,6 @@ function App() {
           icon={<FaInfoCircle />}
           variant="ghost"
           color="white"
-      <Flex justify="space-between" align="center" px={4} py={3} borderBottom="1px solid" borderColor="gray.700">
-        <IconButton
-          aria-label="Info"
-          icon={<FaInfoCircle />}
-          variant="ghost"
-          color="white"
           fontSize="24px"
           size="lg"
           onClick={onInfoOpen}
@@ -463,15 +394,15 @@ function App() {
             <ModalCloseButton />
             <ModalBody>
               <Text>
-                This is placeholder information text that appears in a modal when you
-                click the info button. You can add any content here!
+                This is placeholder information text that appears in a modal
+                when you click the info button. You can add any content here!
               </Text>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme='blue' mr={3} onClick={onInfoClose}>
+              <Button colorScheme="blue" mr={3} onClick={onInfoClose}>
                 Close
               </Button>
-              <Button variant='ghost'>Secondary Action</Button>
+              <Button variant="ghost">Secondary Action</Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
@@ -483,21 +414,11 @@ function App() {
             icon={<FaChartBar />}
             variant="ghost"
             color="white"
-          <IconButton
-            aria-label="Stats"
-            icon={<FaChartBar />}
-            variant="ghost"
-            color="white"
             fontSize="24px"
             size="lg"
             mr={2}
             onClick={onStatsOpen}
           />
-          <IconButton
-            aria-label="Help"
-            icon={<FaQuestion />}
-            variant="ghost"
-            color="white"
 
           <Modal isOpen={isStatsOpen} onClose={onStatsClose}>
             <ModalOverlay />
@@ -506,15 +427,15 @@ function App() {
               <ModalCloseButton />
               <ModalBody>
                 <Text>
-                  This is placeholder information text that appears in a modal when you
-                  click the info button. You can add any content here!
+                  This is placeholder information text that appears in a modal
+                  when you click the info button. You can add any content here!
                 </Text>
               </ModalBody>
               <ModalFooter>
-                <Button colorScheme='blue' mr={3} onClick={onStatsClose}>
+                <Button colorScheme="blue" mr={3} onClick={onStatsClose}>
                   Close
                 </Button>
-                <Button variant='ghost'>Secondary Action</Button>
+                <Button variant="ghost">Secondary Action</Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
@@ -536,24 +457,22 @@ function App() {
               <ModalCloseButton />
               <ModalBody>
                 <Text>
-                  This is placeholder information text that appears in a modal when you
-                  click the info button. You can add any content here!
+                  This is placeholder information text that appears in a modal
+                  when you click the info button. You can add any content here!
                 </Text>
               </ModalBody>
               <ModalFooter>
-                <Button colorScheme='blue' mr={3} onClick={onHelpClose}>
+                <Button colorScheme="blue" mr={3} onClick={onHelpClose}>
                   Close
                 </Button>
-                <Button variant='ghost'>Secondary Action</Button>
+                <Button variant="ghost">Secondary Action</Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
-
         </Flex>
       </Flex>
 
       {/* Main content area */}
-      <Box px={4} py={6} pb="200px">
       <Box px={4} py={6} pb="200px">
         {/* Attempt boxes */}
         {attemptsToShow.map((attempt, index) => (
@@ -561,12 +480,7 @@ function App() {
             key={index}
             borderColor="gray.600"
             borderWidth={1}
-          <Box
-            key={index}
-            borderColor="gray.600"
-            borderWidth={1}
             mb={2}
-            p={2}
             p={2}
             height="50px"
             display="flex"
@@ -578,7 +492,6 @@ function App() {
             {attempt}
           </Box>
         ))}
-
 
         {/* Play instructions */}
         <Center mt={8} color="gray.400">
@@ -594,10 +507,6 @@ function App() {
         <Flex justify="center" align="center" px={12}>
           <Text mr={4}>{currentTime}</Text>
           <Box flex={1} mx={2}>
-            <Progress
-              value={getProgressPercentage()}
-              size="xs"
-              colorScheme="whiteAlpha"
             <Progress
               value={getProgressPercentage()}
               size="xs"
@@ -672,10 +581,6 @@ function App() {
                   aria-label="Clear input"
                   icon={<FaTimes />}
                   size="sm"
-                <IconButton
-                  aria-label="Clear input"
-                  icon={<FaTimes />}
-                  size="sm"
                   variant="ghost"
                   onClick={handleClearInput}
                 />
@@ -683,16 +588,7 @@ function App() {
             )}
           </InputGroup>
 
-
           {/* Dropdown menu for suggestions */}
-          {guess.trim().length > 0 && (
-            <Box
-              position="absolute"
-              top="100%"
-              left={0}
-              right={0}
-              bg="#333"
-              zIndex={10}
           {guess.trim().length > 0 && !selected && (
             <Box
               position="absolute"
@@ -710,16 +606,10 @@ function App() {
             >
               {tracks
                 .filter((track) =>
-                .filter(track =>
                   track.title.toLowerCase().includes(guess.toLowerCase())
                 )
                 .slice(0, 5) // Limit to 5 suggestions
                 .map((track) => (
-                  <Box
-                    key={track.id}
-                    p={3}
-                    cursor="pointer"
-                .map(track => (
                   <Box
                     key={track.id}
                     p={3}
@@ -740,9 +630,6 @@ function App() {
           <Button
             variant="outline"
             color="white"
-          <Button
-            variant="outline"
-            color="white"
             borderColor="gray.600"
             onClick={handleSkip}
             width="120px"
@@ -751,8 +638,6 @@ function App() {
           >
             SKIP (+1s)
           </Button>
-          <Button
-            colorScheme="blue"
           <Button
             colorScheme="blue"
             onClick={handleSubmit}
