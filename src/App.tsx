@@ -13,7 +13,15 @@ import {
   Center,
   Icon,
   Progress,
-  useToast
+  useToast,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton
 } from '@chakra-ui/react';
 import { FaPlay, FaPause, FaQuestion, FaChartBar, FaInfoCircle, FaSearch, FaTimes, FaChevronDown } from 'react-icons/fa';
 
@@ -28,11 +36,16 @@ function App() {
   const [attempts, setAttempts] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState('0:00');
-  const [duration, setDuration] = useState('0:16');
+  const [duration, setDuration] = useState('0:16'); //setDuration isn't being used
   const [selected, setSelected] = useState(false);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { isOpen: isInfoOpen, onOpen: onInfoOpen, onClose: onInfoClose } = useDisclosure()
+  const { isOpen: isStatsOpen, onOpen: onStatsOpen, onClose: onStatsClose } = useDisclosure()
+  const { isOpen: isHelpOpen, onOpen: onHelpOpen, onClose: onHelpClose } = useDisclosure()
+
   const maxAttempts = 6;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const attemptsRef = useRef<string[]>([]);
@@ -279,7 +292,29 @@ function App() {
           color="white"
           fontSize="24px"
           size="lg"
+          onClick={onInfoOpen}
         />
+
+        <Modal isOpen={isInfoOpen} onClose={onInfoClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Modal Title</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Text>
+                This is placeholder information text that appears in a modal when you
+                click the info button. You can add any content here!
+              </Text>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme='blue' mr={3} onClick={onInfoClose}>
+                Close
+              </Button>
+              <Button variant='ghost'>Secondary Action</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
         <Heading size="lg">Bollydle Unlimited</Heading>
         <Flex>
           <IconButton
@@ -290,7 +325,29 @@ function App() {
             fontSize="24px"
             size="lg"
             mr={2}
+            onClick={onStatsOpen}
           />
+
+          <Modal isOpen={isStatsOpen} onClose={onStatsClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Modal Title</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text>
+                  This is placeholder information text that appears in a modal when you
+                  click the info button. You can add any content here!
+                </Text>
+              </ModalBody>
+              <ModalFooter>
+                <Button colorScheme='blue' mr={3} onClick={onStatsClose}>
+                  Close
+                </Button>
+                <Button variant='ghost'>Secondary Action</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
           <IconButton
             aria-label="Help"
             icon={<FaQuestion />}
@@ -298,7 +355,29 @@ function App() {
             color="white"
             fontSize="24px"
             size="lg"
+            onClick={onHelpOpen}
           />
+
+          <Modal isOpen={isHelpOpen} onClose={onHelpClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Modal Title</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text>
+                  This is placeholder information text that appears in a modal when you
+                  click the info button. You can add any content here!
+                </Text>
+              </ModalBody>
+              <ModalFooter>
+                <Button colorScheme='blue' mr={3} onClick={onHelpClose}>
+                  Close
+                </Button>
+                <Button variant='ghost'>Secondary Action</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
         </Flex>
       </Flex>
 
